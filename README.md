@@ -31,8 +31,8 @@
 4. 上傳一份或多份 PDF 規格書
 
 5. 選擇分析模型：
-   - `[1]` Gemini 2.5 Flash（高效能預覽，建議）
-   - `[2]` Gemini 2.0 Flash Lite（極致輕量）
+   - `[1]` gemini-3-flash-preview
+   - `[2]` gemini-3.1-flash-lite-preview
 
 6. 等待分析完成，結果自動下載為 ZIP 檔
 

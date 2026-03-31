@@ -29,8 +29,8 @@ API_COOLDOWN_SEC = 8
 FILE_PROCESSING_TIMEOUT_SEC = 120
 
 AVAILABLE_MODELS = {
-    "1": ("gemini-2.5-flash-preview", "Gemini 2.5 Flash (高效能預覽)"),
-    "2": ("gemini-2.0-flash-lite",    "Gemini 2.0 Flash Lite (極致輕量)"),
+    "1": "gemini-3-flash-preview",
+    "2": "gemini-3.1-flash-lite-preview",
 }
 
 # ==========================================
@@ -211,13 +211,11 @@ def main():
 
     # 4. 模型選擇
     print("\n--- 🤖 選擇分析模型 ---")
-    for key, (model_id, label) in AVAILABLE_MODELS.items():
-        print(f"[{key}] {label}")
+    for key, model_id in AVAILABLE_MODELS.items():
+        print(f"[{key}] {model_id}")
     choice = input("請輸入選擇 (預設 1): ").strip()
-    selected_model_id, selected_model_label = AVAILABLE_MODELS.get(
-        choice, AVAILABLE_MODELS["1"]
-    )
-    print(f"✔ 已選擇: {selected_model_label} ({selected_model_id})")
+    selected_model = AVAILABLE_MODELS.get(choice, AVAILABLE_MODELS["1"])
+    print(f"✔ 已選擇: {selected_model}")
 
     client = genai.Client(api_key=API_KEY)
 
@@ -250,7 +248,7 @@ def main():
 
         print(f"\n[{i+1}/{len(pdf_files)}] 🚀 啟動引擎分析: {pdf.name}")
 
-        ok = distill_file(client, pdf, selected_model_id)
+        ok = distill_file(client, pdf, selected_model)
         if ok:
             success_count += 1
         else:
