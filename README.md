@@ -36,6 +36,51 @@
 
 6. 等待分析完成，結果自動下載為 ZIP 檔
 
+## 本地端版本
+
+使用 `hardware_distiller_local.py`，不需要 Google Colab，直接在終端機執行。
+
+### 安裝
+
+```bash
+pip install -U google-genai
+```
+
+### 使用方式
+
+將 PDF 規格書放入 `./specs` 資料夾後執行：
+
+```bash
+python hardware_distiller_local.py
+```
+
+**CLI 選項：**
+
+```
+--input-dir PATH    含有 PDF 的資料夾（預設：./specs）
+--output-dir PATH   Markdown 輸出資料夾（預設：./summaries）
+--model {1,2}       1=gemini-3-flash-preview, 2=gemini-3.1-flash-lite-preview（預設：1）
+--api-key KEY       Gemini API Key
+```
+
+**設定 API Key 的三種方式（優先順序由高至低）：**
+
+```bash
+# 方式一：CLI 參數
+python hardware_distiller_local.py --api-key YOUR_KEY
+
+# 方式二：環境變數（推薦）
+export GEMINI_API_KEY=YOUR_KEY
+python hardware_distiller_local.py
+
+# 方式三：執行時互動輸入（不設定則自動提示）
+python hardware_distiller_local.py
+```
+
+結果 ZIP 檔會儲存在當前工作目錄，並在執行結束時顯示完整路徑。
+
+---
+
 ## 輸出結構
 
 ```
