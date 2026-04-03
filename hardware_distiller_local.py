@@ -20,10 +20,10 @@ API_COOLDOWN_SEC = 8
 # 雲端檔案處理最大等待秒數
 FILE_PROCESSING_TIMEOUT_SEC = 120
 
-AVAILABLE_MODELS = {
-    "1": "gemini-3.1-flash-preview",
-    "2": "gemini-3.1-flash-lite-preview",
-}
+FALLBACK_MODELS = [
+    "gemini-3.1-flash-preview",
+    "gemini-3.1-flash-lite-preview",
+]
 
 # ==========================================
 # 📝 提煉 Prompt (全方位整合版)
@@ -167,6 +167,41 @@ def distill_file(client, file_path, model_choice, input_dir, output_dir):
 
 
 # ==========================================
+# 🤖 模型自動偵測
+# ==========================================
+def select_model(client):
+    """從 Gemini API 自動偵測可用模型，讓使用者選擇"""
+    try:
+        models = sorted({
+            m.name.replace("models/", "")
+            for m in client.models.list()
+            if "gemini" in m.name.lower()
+            and "embedding" not in m.name.lower()
+            and "aqa" not in m.name.lower()
+        })
+    except Exception:
+        models = []
+
+    if not models:
+        print("⚠️ 無法自動取得模型清單，使用預設清單。")
+        models = FALLBACK_MODELS
+
+    print("\n--- 🤖 選擇分析模型 ---")
+    for i, name in enumerate(models, 1):
+        print(f"[{i}] {name}")
+
+    choice = input(f"請輸入選擇 (1-{len(models)}, 預設 1): ").strip()
+    try:
+        idx = int(choice) - 1
+        selected = models[idx] if 0 <= idx < len(models) else models[0]
+    except ValueError:
+        selected = models[0]
+
+    print(f"✔ 已選擇: {selected}")
+    return selected
+
+
+# ==========================================
 # 🚀 執行主入口
 # ==========================================
 def main():
@@ -182,17 +217,15 @@ def main():
         ])
     )
     parser.add_argument("--input-dir",  type=Path, default=Path("docs/specs"),
-                        help="含有 PDF 的資料夾，同時也是 .md 輸出位置（預設：./docs/specs）")
-    parser.add_argument("--output-dir", type=Path, default=None,
-                        help="Markdown 輸出資料夾（預設：與 --input-dir 相同）")
-    parser.add_argument("--model", choices=["1", "2"], default="1",
-                        help="1=gemini-3-flash-preview, 2=gemini-3.1-flash-lite-preview（預設：1）")
+                        help="含有 PDF 的資料夾（預設：./docs/specs）")
+    parser.add_argument("--output-dir", type=Path, default=Path("docs/summaries"),
+                        help="Markdown 輸出資料夾（預設：./docs/summaries）")
     parser.add_argument("--api-key", default=None,
                         help="Gemini API Key（也可設定環境變數 GEMINI_API_KEY）")
     args = parser.parse_args()
 
     input_dir  = args.input_dir.resolve()
-    output_dir = (args.output_dir or args.input_dir).resolve()
+    output_dir = args.output_dir.resolve()
 
     # API Key：CLI 參數 > 環境變數 > 互動輸入
     api_key = (
@@ -204,7 +237,8 @@ def main():
         print("❌ 錯誤：未提供 API KEY。")
         return
 
-    selected_model = AVAILABLE_MODELS[args.model]
+    client = genai.Client(api_key=api_key)
+    selected_model = select_model(client)
 
     print("--- 🛠️ 環境初始化 ---")
     print(f"📂 輸入目錄: {input_dir}")
@@ -232,8 +266,6 @@ def main():
         return
 
     print(f"\n📦 開始處理任務，共 {len(pdf_files)} 個檔案...")
-
-    client = genai.Client(api_key=api_key)
 
     success_count = 0
     skip_count = 0

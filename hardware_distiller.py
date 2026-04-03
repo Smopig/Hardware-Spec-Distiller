@@ -19,7 +19,7 @@ API_KEY = getpass.getpass("請輸入您的 GEMINI_API_KEY: ")
 # Colab 環境路徑設定
 BASE_PATH = Path("/content/AI_Hardware_Distiller/")
 INPUT_DIR  = BASE_PATH / "docs/specs/"
-OUTPUT_DIR = BASE_PATH / "docs/specs/"
+OUTPUT_DIR = BASE_PATH / "docs/summaries/"
 
 # API 頻率保護冷卻秒數
 API_COOLDOWN_SEC = 8
@@ -27,10 +27,6 @@ API_COOLDOWN_SEC = 8
 # 雲端檔案處理最大等待秒數
 FILE_PROCESSING_TIMEOUT_SEC = 120
 
-AVAILABLE_MODELS = {
-    "1": "gemini-3.1-flash-preview",
-    "2": "gemini-3.1-flash-lite-preview",
-}
 
 # ==========================================
 # 📝 提煉 Prompt (全方位整合版)
@@ -186,6 +182,46 @@ def distill_file(client, file_path, model_choice):
 
 
 # ==========================================
+# 🤖 模型自動偵測
+# ==========================================
+FALLBACK_MODELS = [
+    "gemini-3.1-flash-preview",
+    "gemini-3.1-flash-lite-preview",
+]
+
+def select_model(client):
+    """從 Gemini API 自動偵測可用模型，讓使用者選擇"""
+    try:
+        models = sorted({
+            m.name.replace("models/", "")
+            for m in client.models.list()
+            if "gemini" in m.name.lower()
+            and "embedding" not in m.name.lower()
+            and "aqa" not in m.name.lower()
+        })
+    except Exception:
+        models = []
+
+    if not models:
+        print("⚠️ 無法自動取得模型清單，使用預設清單。")
+        models = FALLBACK_MODELS
+
+    print("\n--- 🤖 選擇分析模型 ---")
+    for i, name in enumerate(models, 1):
+        print(f"[{i}] {name}")
+
+    choice = input(f"請輸入選擇 (1-{len(models)}, 預設 1): ").strip()
+    try:
+        idx = int(choice) - 1
+        selected = models[idx] if 0 <= idx < len(models) else models[0]
+    except ValueError:
+        selected = models[0]
+
+    print(f"✔ 已選擇: {selected}")
+    return selected
+
+
+# ==========================================
 # 🚀 執行主入口
 # ==========================================
 def main():
@@ -208,15 +244,9 @@ def main():
     for filename in uploaded.keys():
         shutil.move(filename, INPUT_DIR / filename)
 
-    # 4. 模型選擇
-    print("\n--- 🤖 選擇分析模型 ---")
-    for key, model_id in AVAILABLE_MODELS.items():
-        print(f"[{key}] {model_id}")
-    choice = input("請輸入選擇 (預設 1): ").strip()
-    selected_model = AVAILABLE_MODELS.get(choice, AVAILABLE_MODELS["1"])
-    print(f"✔ 已選擇: {selected_model}")
-
+    # 4. 建立 Client 並選擇模型
     client = genai.Client(api_key=API_KEY)
+    selected_model = select_model(client)
 
     # 5. 掃描檔案 (支援大小寫 PDF 副檔名，使用 dict.fromkeys 保留順序並去重)
     pdf_files = list(

@@ -30,9 +30,7 @@
 
 4. 上傳一份或多份 PDF 規格書
 
-5. 選擇分析模型：
-   - `[1]` gemini-3-flash-preview
-   - `[2]` gemini-3.1-flash-lite-preview
+5. 選擇分析模型（自動從 Gemini API 偵測可用清單）
 
 6. 等待分析完成，結果自動下載為 ZIP 檔
 
@@ -57,8 +55,8 @@ python hardware_distiller_local.py
 **CLI 選項：**
 
 ```
---input-dir PATH    含有 PDF 的資料夾，同時也是 .md 輸出位置（預設：./docs/specs）
---output-dir PATH   Markdown 輸出資料夾（預設：與 --input-dir 相同）
+--input-dir PATH    含有 PDF 的資料夾（預設：./docs/specs）
+--output-dir PATH   Markdown 輸出資料夾（預設：./docs/summaries）
 --model {1,2}       1=gemini-3-flash-preview, 2=gemini-3.1-flash-lite-preview（預設：1）
 --api-key KEY       Gemini API Key
 ```
@@ -83,12 +81,11 @@ Markdown 摘要存至 `./docs/specs/`，PDF 就地重新命名於 input 資料�
 
 ## 目錄結構
 
-PDF 規格書與產出的 Markdown 摘要統一放在 `docs/specs/`：
-
 ```
 專案目錄/
-└── docs/specs/
-    ├── 廠牌_型號_功能描述.pdf           # 原始 PDF 就地重新命名
+├── docs/specs/
+│   └── 廠牌_型號_功能描述.pdf           # 原始 PDF 就地重新命名
+└── docs/summaries/
     └── 廠牌_型號_功能描述_summary.md   # 自動產出的 Markdown 規格報告
 ```
 
