@@ -1,5 +1,5 @@
 # 安裝必要的函式庫
-# pip install -U google-genai
+# pip install -U google-genai python-dotenv
 
 import os
 import re
@@ -8,7 +8,10 @@ import getpass
 import shutil
 import argparse
 from pathlib import Path
+from dotenv import load_dotenv
 from google import genai
+
+load_dotenv()
 
 # ==========================================
 # ⚙️ 配置區
