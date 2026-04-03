@@ -6,7 +6,6 @@ import re
 import time
 import getpass
 import shutil
-import zipfile
 import argparse
 from pathlib import Path
 from google import genai
@@ -184,8 +183,8 @@ def main():
     )
     parser.add_argument("--input-dir",  type=Path, default=Path("specs"),
                         help="含有 PDF 的資料夾（預設：./specs）")
-    parser.add_argument("--output-dir", type=Path, default=Path("summaries"),
-                        help="Markdown 輸出資料夾（預設：./summaries）")
+    parser.add_argument("--output-dir", type=Path, default=Path("docs/specs"),
+                        help="Markdown 輸出資料夾（預設：./docs/specs）")
     parser.add_argument("--model", choices=["1", "2"], default="1",
                         help="1=gemini-3-flash-preview, 2=gemini-3.1-flash-lite-preview（預設：1）")
     parser.add_argument("--api-key", default=None,
@@ -264,22 +263,15 @@ def main():
 
     print(f"\n📊 任務完成：成功 {success_count} | 跳過 {skip_count} | 失敗 {fail_count}")
 
-    # 打包結果
+    # 列出產出的 Markdown 檔
     md_files = list(output_dir.glob("*.md"))
-    pdf_files_out = list(input_dir.glob("*.pdf")) + list(input_dir.glob("*.PDF"))
-
     if not md_files:
-        print("⚠️ 無產出檔案，取消打包。")
+        print("⚠️ 無產出檔案。")
         return
 
-    zip_path = Path(f"Hardware_Analysis_Package_{int(time.time())}.zip").resolve()
-    with zipfile.ZipFile(zip_path, "w") as zipf:
-        for md in md_files:
-            zipf.write(md, arcname=f"Summaries/{md.name}")
-        for pdf in pdf_files_out:
-            zipf.write(pdf, arcname=f"Renamed_PDFs/{pdf.name}")
-
-    print(f"\n✨ 任務圓滿結束！結果已打包至:\n   {zip_path}")
+    print(f"\n✨ 任務圓滿結束！共產出 {len(md_files)} 份摘要於 {output_dir}:")
+    for md in sorted(md_files):
+        print(f"   📄 {md.name}")
 
 
 if __name__ == "__main__":

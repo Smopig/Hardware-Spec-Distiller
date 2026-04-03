@@ -77,18 +77,18 @@ python hardware_distiller_local.py
 python hardware_distiller_local.py
 ```
 
-結果 ZIP 檔會儲存在當前工作目錄，並在執行結束時顯示完整路徑。
+Markdown 摘要存至 `./docs/specs/`，PDF 就地重新命名於 input 資料夾內，執行結束後列出所有產出檔案路徑。
 
 ---
 
 ## 輸出結構
 
 ```
-Hardware_Analysis_Package_<timestamp>.zip
-├── Summaries/
+專案目錄/
+├── docs/specs/
 │   └── 廠牌_型號_功能描述_summary.md   # 結構化 Markdown 規格報告
-└── Renamed_PDFs/
-    └── 廠牌_型號_功能描述.pdf           # 依分析結果重新命名的原始 PDF
+└── specs/（或自訂 input-dir）
+    └── 廠牌_型號_功能描述.pdf           # 原始 PDF 依分析結果就地重新命名
 ```
 
 每份 Markdown 報告包含：基本資訊、電氣特性、關鍵性能參數表、完整接腳辭典、硬體佈局指引、韌體驅動框架（若有通訊介面）。

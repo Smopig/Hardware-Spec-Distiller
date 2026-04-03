@@ -6,7 +6,6 @@ import re
 import time
 import getpass
 import shutil
-import zipfile
 from pathlib import Path
 from google import genai
 from google.colab import files
@@ -20,7 +19,7 @@ API_KEY = getpass.getpass("請輸入您的 GEMINI_API_KEY: ")
 # Colab 環境路徑設定
 BASE_PATH = Path("/content/AI_Hardware_Distiller/")
 INPUT_DIR = BASE_PATH / "specs/"
-OUTPUT_DIR = BASE_PATH / "summaries/"
+OUTPUT_DIR = BASE_PATH / "docs/specs/"
 
 # API 頻率保護冷卻秒數
 API_COOLDOWN_SEC = 8
@@ -262,24 +261,15 @@ def main():
     # 6. 任務統計
     print(f"\n📊 任務完成：成功 {success_count} | 跳過 {skip_count} | 失敗 {fail_count}")
 
-    # 7. 打包並下載結果
-    print("\n--- 📥 正在打包結果 ---")
-    md_files  = list(OUTPUT_DIR.glob("*.md"))
-    pdf_files_out = list(INPUT_DIR.glob("*.pdf")) + list(INPUT_DIR.glob("*.PDF"))
-
+    # 7. 列出產出的 Markdown 檔
+    md_files = list(OUTPUT_DIR.glob("*.md"))
     if not md_files:
-        print("⚠️ 無產出檔案，取消下載。")
+        print("⚠️ 無產出檔案。")
         return
 
-    zip_filename = f"Hardware_Analysis_Package_{int(time.time())}.zip"
-    with zipfile.ZipFile(zip_filename, "w") as zipf:
-        for md in md_files:
-            zipf.write(md, arcname=f"Summaries/{md.name}")
-        for pdf in pdf_files_out:
-            zipf.write(pdf, arcname=f"Renamed_PDFs/{pdf.name}")
-
-    files.download(zip_filename)
-    print(f"✨ 任務圓滿結束！產出結果已下載為: {zip_filename}")
+    print(f"\n✨ 任務圓滿結束！共產出 {len(md_files)} 份摘要於 {OUTPUT_DIR}:")
+    for md in sorted(md_files):
+        print(f"   📄 {md.name}")
 
 
 if __name__ == "__main__":
