@@ -28,7 +28,7 @@ API_COOLDOWN_SEC = 8
 FILE_PROCESSING_TIMEOUT_SEC = 120
 
 AVAILABLE_MODELS = {
-    "1": "gemini-3-flash-preview",
+    "1": "gemini-3.1-flash-preview",
     "2": "gemini-3.1-flash-lite-preview",
 }
 
