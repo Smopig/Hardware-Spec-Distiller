@@ -48,7 +48,7 @@ pip install -U google-genai
 
 ### 使用方式
 
-將 PDF 規格書放入 `./specs` 資料夾後執行：
+將 PDF 規格書放入 `./docs/specs` 資料夾後執行：
 
 ```bash
 python hardware_distiller_local.py
@@ -57,8 +57,8 @@ python hardware_distiller_local.py
 **CLI 選項：**
 
 ```
---input-dir PATH    含有 PDF 的資料夾（預設：./specs）
---output-dir PATH   Markdown 輸出資料夾（預設：./summaries）
+--input-dir PATH    含有 PDF 的資料夾，同時也是 .md 輸出位置（預設：./docs/specs）
+--output-dir PATH   Markdown 輸出資料夾（預設：與 --input-dir 相同）
 --model {1,2}       1=gemini-3-flash-preview, 2=gemini-3.1-flash-lite-preview（預設：1）
 --api-key KEY       Gemini API Key
 ```
@@ -81,14 +81,15 @@ Markdown 摘要存至 `./docs/specs/`，PDF 就地重新命名於 input 資料�
 
 ---
 
-## 輸出結構
+## 目錄結構
+
+PDF 規格書與產出的 Markdown 摘要統一放在 `docs/specs/`：
 
 ```
 專案目錄/
-├── docs/specs/
-│   └── 廠牌_型號_功能描述_summary.md   # 結構化 Markdown 規格報告
-└── specs/（或自訂 input-dir）
-    └── 廠牌_型號_功能描述.pdf           # 原始 PDF 依分析結果就地重新命名
+└── docs/specs/
+    ├── 廠牌_型號_功能描述.pdf           # 原始 PDF 就地重新命名
+    └── 廠牌_型號_功能描述_summary.md   # 自動產出的 Markdown 規格報告
 ```
 
 每份 Markdown 報告包含：基本資訊、電氣特性、關鍵性能參數表、完整接腳辭典、硬體佈局指引、韌體驅動框架（若有通訊介面）。

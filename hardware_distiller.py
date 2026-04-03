@@ -18,7 +18,7 @@ API_KEY = getpass.getpass("請輸入您的 GEMINI_API_KEY: ")
 
 # Colab 環境路徑設定
 BASE_PATH = Path("/content/AI_Hardware_Distiller/")
-INPUT_DIR = BASE_PATH / "specs/"
+INPUT_DIR  = BASE_PATH / "docs/specs/"
 OUTPUT_DIR = BASE_PATH / "docs/specs/"
 
 # API 頻率保護冷卻秒數

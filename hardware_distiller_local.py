@@ -181,10 +181,10 @@ def main():
             "  GEMINI_API_KEY=your_key python hardware_distiller_local.py",
         ])
     )
-    parser.add_argument("--input-dir",  type=Path, default=Path("specs"),
-                        help="含有 PDF 的資料夾（預設：./specs）")
-    parser.add_argument("--output-dir", type=Path, default=Path("docs/specs"),
-                        help="Markdown 輸出資料夾（預設：./docs/specs）")
+    parser.add_argument("--input-dir",  type=Path, default=Path("docs/specs"),
+                        help="含有 PDF 的資料夾，同時也是 .md 輸出位置（預設：./docs/specs）")
+    parser.add_argument("--output-dir", type=Path, default=None,
+                        help="Markdown 輸出資料夾（預設：與 --input-dir 相同）")
     parser.add_argument("--model", choices=["1", "2"], default="1",
                         help="1=gemini-3-flash-preview, 2=gemini-3.1-flash-lite-preview（預設：1）")
     parser.add_argument("--api-key", default=None,
@@ -192,7 +192,7 @@ def main():
     args = parser.parse_args()
 
     input_dir  = args.input_dir.resolve()
-    output_dir = args.output_dir.resolve()
+    output_dir = (args.output_dir or args.input_dir).resolve()
 
     # API Key：CLI 參數 > 環境變數 > 互動輸入
     api_key = (
