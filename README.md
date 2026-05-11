@@ -1,92 +1,108 @@
-# AI 硬體規格提煉器 (Hardware Spec Distiller)
+# AI 硬體規格提煉器（Claude Code Skill）
 
-使用 Google Gemini 自動深度分析電子元件 PDF 規格書，輸出結構化的全方位硬體設計百科（Markdown 格式），作為電路圖設計、PCB 佈局、底層驅動開發與採購的參考依據。
+把電子元件 PDF 規格書，深度提煉成結構化的「全方位硬體設計百科」Markdown 報告，作為電路圖設計、PCB 佈局、底層驅動開發與採購的單一事實來源。
 
-## 功能特色
+本專案已從原本綁定 Google Colab / Gemini 的 Python 腳本，改寫為一個 **Claude Code Skill**，具備以下特性：
 
-- **全方位規格提取**：自動識別元件型號、腳位定義、電氣特性、極限值、佈局指引、韌體寄存器框架等
-- **AI 智慧命名**：依據分析結果自動以 `廠牌_型號_功能描述` 格式命名輸出檔
-- **Token 使用量監控**：每次分析後顯示輸入/輸出/總計 Token 數
-- **重複保護**：自動跳過已存在摘要的檔案，避免重複呼叫 API
-- **批次處理**：支援一次上傳多份 PDF，依序自動處理
-- **結果打包下載**：分析完成後自動壓縮成 ZIP 檔並觸發下載
-
-## 環境需求
-
-- [Google Colab](https://colab.research.google.com/)
-- `google-genai` Python 套件
-- [Gemini API Key](https://aistudio.google.com/app/apikey)
-
-## 使用方式
-
-1. 在 Colab 安裝套件：
-   ```bash
-   !pip install -U google-genai -q
-   ```
-
-2. 執行 `hardware_distiller.py`
-
-3. 輸入 Gemini API Key（使用安全輸入，不會明文顯示）
-
-4. 上傳一份或多份 PDF 規格書
-
-5. 選擇分析模型（自動從 Gemini API 偵測可用清單）
-
-6. 等待分析完成，結果自動下載為 ZIP 檔
-
-## 本地端版本
-
-使用 `hardware_distiller_local.py`，不需要 Google Colab，直接在終端機執行。
-
-### 安裝
-
-```bash
-pip install -U google-genai
-```
-
-### 使用方式
-
-將 PDF 規格書放入 `./docs/specs` 資料夾後執行：
-
-```bash
-python hardware_distiller_local.py
-```
-
-**CLI 選項：**
-
-```
---input-dir PATH    含有 PDF 的資料夾（預設：./docs/specs）
---output-dir PATH   Markdown 輸出資料夾（預設：./docs/summaries）
---model {1,2}       1=gemini-3-flash-preview, 2=gemini-3.1-flash-lite-preview（預設：1）
---api-key KEY       Gemini API Key
-```
-
-**設定 API Key 的三種方式（優先順序由高至低）：**
-
-```bash
-# 方式一：CLI 參數
-python hardware_distiller_local.py --api-key YOUR_KEY
-
-# 方式二：環境變數（推薦）
-export GEMINI_API_KEY=YOUR_KEY
-python hardware_distiller_local.py
-
-# 方式三：執行時互動輸入（不設定則自動提示）
-python hardware_distiller_local.py
-```
-
-Markdown 摘要存至 `./docs/specs/`，PDF 就地重新命名於 input 資料夾內，執行結束後列出所有產出檔案路徑。
+- ✅ **不限定 LLM 供應商**：預設由 Claude Code 主機端直接處理，亦支援 Anthropic / Gemini / OpenAI 任一 API
+- ✅ **不需要 Colab**：純本地或 Claude Code 環境
+- ✅ **不限定金鑰**：預設模式完全免 API Key；批次模式自動偵測環境變數
+- ✅ **路徑彈性**：輸入/輸出資料夾自由指定，亦可使用預設值
+- ✅ **強化版提示詞**：頁碼強制溯源、缺漏資訊禁止虛構、多 channel 拆表、Pin Map I/O Type 代碼化、單位規範化等
 
 ---
 
-## 目錄結構
+## 安裝
+
+把 `.claude/skills/hardware-spec-distiller/` 整個資料夾複製到你的專案根目錄（或全域 `~/.claude/skills/`）。Claude Code 啟動時會自動掃描並載入。
 
 ```
-專案目錄/
-├── docs/specs/
-│   └── 廠牌_型號_功能描述.pdf           # 原始 PDF 就地重新命名
-└── docs/summaries/
-    └── 廠牌_型號_功能描述_summary.md   # 自動產出的 Markdown 規格報告
+your-project/
+└── .claude/
+    └── skills/
+        └── hardware-spec-distiller/
+            ├── SKILL.md
+            ├── PROMPT.md
+            └── scripts/
+                └── distill.py
 ```
 
-每份 Markdown 報告包含：基本資訊、電氣特性、關鍵性能參數表、完整接腳辭典、硬體佈局指引、韌體驅動框架（若有通訊介面）。
+---
+
+## 使用方式
+
+### 模式 A：Claude 直接執行（推薦，無需 API Key）
+
+在 Claude Code session 中直接說：
+
+> 「幫我分析 `./datasheets/foo.pdf`，輸出到 `./out`」
+>
+> 「處理 `~/Downloads/` 裡所有的 datasheet」
+>
+> 「提煉這份規格書的 Pin Map 和寄存器」
+
+Claude 會自動觸發本 Skill，逐份讀 PDF、套用 `PROMPT.md`、產出 `*_summary.md`。
+
+### 模式 B：批次/多供應商腳本
+
+適合大量 PDF（≥ 5 份）或 CI 場景。先安裝對應 SDK 並設環境變數：
+
+```bash
+# 任選其一
+pip install anthropic       && export ANTHROPIC_API_KEY=sk-ant-...
+pip install google-genai    && export GEMINI_API_KEY=...
+pip install openai          && export OPENAI_API_KEY=sk-...
+```
+
+執行：
+
+```bash
+python .claude/skills/hardware-spec-distiller/scripts/distill.py \
+  --input-dir ./pdfs \
+  --output-dir ./summaries
+```
+
+CLI 參數：
+
+| 參數 | 預設 | 說明 |
+|---|---|---|
+| `--input-dir` | `./docs/specs` | PDF 來源資料夾 |
+| `--output-dir` | `./docs/summaries` | Markdown 輸出資料夾 |
+| `--provider` | 自動偵測 | `anthropic` / `gemini` / `openai` |
+| `--model` | 各供應商預設 | 覆寫 model id |
+| `--rename-pdf` | 否 | 是否就地重命名原 PDF（不可逆） |
+
+供應商偵測優先序：`ANTHROPIC_API_KEY` → `GEMINI_API_KEY` → `OPENAI_API_KEY`，或以 `--provider` 強制指定。
+
+---
+
+## 輸出範例
+
+每份 PDF → 一份 `廠牌_型號_中文功能_summary.md`，內含：
+
+1. **基本資訊與溯源**（型號、廠商、封裝、特徵）
+2. **電氣特性與系統邊界**（電源軌、邏輯電位、極限值、防護）
+3. **關鍵性能參數表**（含章節 + 頁碼溯源）
+4. **完整的接腳辭典**（標準化 I/O Type 代碼，禁止省略）
+5. **硬體整合與佈局指引**（BOM、Layout、上電時序）
+6. **韌體開發與驅動框架**（寄存器、計算公式、C 驅動骨架）
+7. **採購備援**（cross-reference / 生命週期，若手冊有）
+
+---
+
+## 提示詞 (PROMPT.md) 重點規範
+
+- 第一行強制：`<<FILE_NAME>>: 廠牌_型號_中文功能描述 <<END>>`
+- 未揭露資訊一律寫 `N/A (未於手冊揭露)`，**禁止虛構或推估**
+- 多 channel 元件（PMIC 等）必須**逐 channel 拆表**
+- Pin Map `I/O Type` 限定使用 `PI / PO / DI / DO / AI / AO / PWR / GND / NC / EPAD` 等代碼
+- 單位規範：電流 `A/mA/µA`、頻率 `Hz/kHz/MHz`、溫度 `°C`、電阻 `Ω`
+- 排除行銷詞彙（Excellent / Industry-leading 等）
+
+如需自訂提示詞，直接編輯 `.claude/skills/hardware-spec-distiller/PROMPT.md`。
+
+---
+
+## 從舊版遷移
+
+舊的 `hardware_distiller.py`（Colab 版）與 `hardware_distiller_local.py`（Gemini-only 版）已刪除，全部功能由 Skill 接手。原 Gemini 行為可透過 `scripts/distill.py --provider gemini` 完整保留。
